@@ -37,18 +37,19 @@ const getKaohsiungWeather = async (req, res) => {
       {
         params: {
           Authorization: CWA_API_KEY,
-          locationName: "宜蘭縣",
+          // 修改 location name
+          locationName: "金門縣",
         },
       }
     );
 
-    // 取得高雄市的天氣資料
+    // 取得金門縣的天氣資料
     const locationData = response.data.records.location[0];
 
     if (!locationData) {
       return res.status(404).json({
         error: "查無資料",
-        message: "無法取得高雄市天氣資料",
+        message: "無法取得金門縣天氣資料",
       });
     }
 
