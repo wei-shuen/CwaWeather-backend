@@ -16,9 +16,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /**
- * 取得金門天氣預報
+ * 取得指定縣市天氣預報
  * CWA 氣象資料開放平臺 API
  * 使用「一般天氣預報-今明 36 小時天氣預報」資料集
+ * 支援路由參數 `:location` 或 query param `location`，可使用短鍵（例如 `kinmen`）或中文縣市名稱（例如 `金門縣`）。
  */
 const getLocationWeather = async (req, res) => {
   try {
@@ -30,6 +31,26 @@ const getLocationWeather = async (req, res) => {
       });
     }
 
+    // 解析使用者傳入的縣市代碼或名稱（優先順序：route param > query param > 預設 kinmen）
+    const locationParam = req.params.location || req.query.location || "kinmen";
+    const locationKey = String(locationParam).trim();
+
+    // 簡單代碼到中文名稱的映射，可視需要擴充
+    const locationMap = {
+      kinmen: "金門縣",
+      taipei: "臺北市",
+      newtaipei: "新北市",
+      taoyuan: "桃園市",
+      taichung: "臺中市",
+      tainan: "臺南市",
+      kaohsiung: "高雄市",
+      nantou: "南投縣",
+      hualien: "花蓮縣",
+      taitung: "臺東縣",
+    };
+
+    const locationName = locationMap[locationKey.toLowerCase()] || locationKey;
+
     // 呼叫 CWA API - 一般天氣預報（36小時）
     // API 文件: https://opendata.cwa.gov.tw/dist/opendata-swagger.html
     const response = await axios.get(
@@ -37,19 +58,19 @@ const getLocationWeather = async (req, res) => {
       {
         params: {
           Authorization: CWA_API_KEY,
-          // 修改 location name
-          locationName: "金門縣",
+          // 使用解析後的縣市名稱
+          locationName,
         },
       }
     );
 
-    // 取得金門縣的天氣資料
+    // 取得縣市的天氣資料
     const locationData = response.data.records.location[0];
 
     if (!locationData) {
       return res.status(404).json({
         error: "查無資料",
-        message: "無法取得金門縣天氣資料",
+        message: "無法取得該縣市天氣資料",
       });
     }
 
@@ -132,7 +153,7 @@ app.get("/", (req, res) => {
   res.json({
     message: "歡迎使用 CWA 天氣預報 API",
     endpoints: {
-      kinmen: "/api/weather/kinmen",
+      weather: "/api/weather/:location 或 /api/weather?location=金門縣",
       health: "/api/health",
     },
   });
@@ -142,8 +163,8 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
-// 取得金門天氣預報
-app.get("/api/weather/kinmen", getLocationWeather);
+// 取得指定縣市天氣預報（支援 route param 或 query param）
+app.get("/api/weather/:location?", getLocationWeather);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
