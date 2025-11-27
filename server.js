@@ -51,9 +51,9 @@ const getLocationWeather = async (req, res) => {
 
     const locationName = locationMap[locationKey.toLowerCase()] || locationKey;
 
-    // 呼叫 CWA API - 一般天氣預報（36小時）
     // API 文件: https://opendata.cwa.gov.tw/dist/opendata-swagger.html
-    const response = await axios.get(
+    // 呼叫 CWA API - 一般天氣預報（36小時）
+    const responseFor36Hours = await axios.get(
       `${CWA_API_BASE_URL}/v1/rest/datastore/F-C0032-001`,
       {
         params: {
@@ -64,8 +64,22 @@ const getLocationWeather = async (req, res) => {
       }
     );
 
+    // 呼叫 CWA API - 一般天氣預報（7天）
+    const responseFor7Days = await axios.get(
+      `${CWA_API_BASE_URL}/v1/rest/datastore/F-D0047-091`,
+      {
+        params: {
+          Authorization: CWA_API_KEY,
+          // 使用解析後的縣市名稱
+          locationName,
+        },
+      }
+    );
+
     // 取得縣市的天氣資料
-    const locationData = response.data.records.location[0];
+    const locationData = responseFor36Hours.data.records.location[0];
+    const locationData7Days = responseFor7Days.data.records.location[0];
+    console.log(locationData7Days);
 
     if (!locationData) {
       return res.status(404).json({
