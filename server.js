@@ -168,7 +168,6 @@ const getCombinedWeather = async (req, res) => {
     const response = await Promise.all([getHoursWeather(locationName), getWeekWeather(locationName)])
     console.log('response',response[1].data.records.Locations[0].Location);
 
-    // const [hoursResp, weekResp] = await Promise.all([getHoursWeather(locationName), getWeekWeather(locationName)]);
     // console.log("hoursResp", hoursResp);
     // console.log("weekResp", weekResp);
 
