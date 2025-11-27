@@ -78,6 +78,8 @@ const getLocationWeather = async (req, res) => {
 
     // 取得縣市的天氣資料
     const locationData = responseFor36Hours.data.records.location[0];
+    const locationData7Days = responseFor7Days.data.records.location[0];
+    console.log(responseFor7Days);
     console.log(locationData7Days);
 
     if (!locationData) {
